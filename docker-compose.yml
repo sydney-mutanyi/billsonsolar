@@ -20,7 +20,7 @@ services:
     container_name: billsonsolar_nginx
     restart: unless-stopped
     ports:
-      - "8005:80"
+      - "2095:80"
     volumes:
       - .:/var/www
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
@@ -45,7 +45,7 @@ services:
     networks:
       - billsonsolar_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD:-secret}"]
+      test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASSWORD:-secret}" ]
       interval: 10s
       timeout: 5s
       retries: 5
