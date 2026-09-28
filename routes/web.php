@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CartController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +16,14 @@ Route::get('/shop', [PageController::class, 'shop'])->name('shop.index');
 Route::get('/shop/{slug}', [PageController::class, 'productDetail'])->name('shop.detail');
 Route::get('/solutions', [PageController::class, 'solutions'])->name('solutions');
 Route::get('/installation', [PageController::class, 'installation'])->name('installation');
-Route::get('/cart', [PageController::class, 'cart'])->name('cart');
+
+// Cart & Quote System
+Route::get('/cart', [CartController::class, 'index'])->name('cart');
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
+Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 

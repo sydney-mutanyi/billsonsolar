@@ -120,28 +120,6 @@ class PageController extends Controller
     }
 
     /**
-     * Cart & System Quote Builder Page
-     */
-    public function cart()
-    {
-        $featuredProducts = Product::with(['category', 'brand'])->take(2)->get();
-        $items = [];
-
-        foreach ($featuredProducts as $index => $fp) {
-            $items[] = [
-                'slug' => $fp->slug,
-                'title' => $fp->title,
-                'brand' => $fp->brand ? $fp->brand->name : 'Bills On Solar',
-                'price' => $fp->price,
-                'qty' => $index === 0 ? 6 : 1,
-                'image' => $fp->image ?: 'images/product_solar_panel.png'
-            ];
-        }
-
-        return view('pages.cart', compact('items'));
-    }
-
-    /**
      * Contact Us Page
      */
     public function contact()

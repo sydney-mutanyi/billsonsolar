@@ -43,7 +43,7 @@
                             </div>
                         @endif
 
-                        <a href="https://wa.me/254795857846?text=Hello%20BillsOnSolar!%20I'm%20interested%20in%20the%20{{ urlencode($sol->title) }}" class="btn-primary" target="_blank">
+                        <a href="https://wa.me/254702156134?text=Hello%20BillsOnSolar!%20I'm%20interested%20in%20the%20{{ urlencode($sol->title) }}" class="btn-primary" target="_blank">
                             Get Custom Quote for {{ $sol->badge }} →
                         </a>
                     </div>

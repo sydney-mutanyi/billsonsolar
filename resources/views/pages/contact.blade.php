@@ -28,7 +28,10 @@
                         </div>
                         <div>
                             <h3 style="font-size: 16px; font-weight: 800; color: var(--color-charcoal); margin-bottom: 4px;">Phone & Hotline</h3>
-                            <p style="font-size: 14px; color: var(--color-text-muted);"><a href="tel:+254795857846" style="color:var(--color-charcoal); font-weight:700;">+254 795 857 846</a></p>
+                            <p style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 4px;">
+                                <a href="tel:+254702156134" style="color:var(--color-charcoal); font-weight:700;">+254 702 156 134</a> / 
+                                <a href="tel:+254724484209" style="color:var(--color-charcoal); font-weight:700;">+254 724 484 209</a>
+                            </p>
                             <p style="font-size: 12px; color: var(--color-text-muted);">Mon – Sat: 8:00 AM – 6:00 PM</p>
                         </div>
                     </div>
@@ -42,7 +45,7 @@
                         <div>
                             <h3 style="font-size: 16px; font-weight: 800; color: var(--color-charcoal); margin-bottom: 4px;">Instant WhatsApp Chat</h3>
                             <p style="font-size: 13.5px; color: var(--color-text-muted); margin-bottom: 8px;">Fastest response for quotes, product availability & installation questions.</p>
-                            <a href="https://wa.me/254795857846?text=Hello%20Bills%20On%20Solar!" target="_blank" style="font-size: 13px; font-weight: 700; color: #25D366;">Start WhatsApp Chat →</a>
+                            <a href="https://wa.me/254702156134?text=Hello%20Bills%20On%20Solar!" target="_blank" style="font-size: 13px; font-weight: 700; color: #25D366;">Start WhatsApp Chat (0702 156 134) →</a>
                         </div>
                     </div>
                 </div>
