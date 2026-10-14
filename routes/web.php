@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\CartController;
 
 /*
@@ -33,10 +34,21 @@ Route::get('/blog/{slug}', [PageController::class, 'blogPost'])->name('blog.show
 
 /*
 |--------------------------------------------------------------------------
-| Admin Dashboard Routes
+| Admin Login / Logout (public — no middleware)
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Dashboard Routes (protected by admin.auth middleware)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // Products CRUD

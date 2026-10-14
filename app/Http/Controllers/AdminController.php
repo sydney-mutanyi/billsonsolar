@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\Solution;
 use App\Models\Blog;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -75,13 +76,22 @@ class AdminController extends Controller
             'brand_id' => 'required|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'badge' => 'nullable|string|max:50',
-            'image' => 'nullable|string|max:255',
+            'image_file' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
             'rating' => 'nullable|numeric|min:1|max:5',
             'reviews' => 'nullable|integer|min:0',
             'is_featured' => 'nullable|boolean',
             'specs_key' => 'nullable|array',
             'specs_val' => 'nullable|array',
+        ], [
+            'image_file.required' => 'Please upload a product image.',
+            'image_file.image' => 'The uploaded file must be a valid image.',
+            'image_file.mimes' => 'The image must be a file of type: jpeg, png, jpg, webp, gif.',
+            'image_file.max' => 'The image size may not be greater than 5MB.',
         ]);
+
+        // Upload the image file to storage/app/public/products
+        $path = $request->file('image_file')->store('products', 'public');
+        $imagePath = 'storage/' . $path;
 
         // Build Specs JSON
         $specs = [];
@@ -100,7 +110,7 @@ class AdminController extends Controller
             'brand_id' => $validated['brand_id'],
             'price' => $validated['price'],
             'badge' => $validated['badge'] ?? null,
-            'image' => $validated['image'] ?: 'images/product_solar_panel.png',
+            'image' => $imagePath,
             'rating' => $validated['rating'] ?? 5.0,
             'reviews' => $validated['reviews'] ?? 0,
             'is_featured' => $request->has('is_featured'),
@@ -108,7 +118,7 @@ class AdminController extends Controller
             'specs' => $specs,
         ]);
 
-        return redirect()->route('admin.products.index')->with('success', 'Solar product created successfully!');
+        return redirect()->route('admin.products.index')->with('success', 'Solar product created successfully with uploaded image!');
     }
 
     /**
@@ -136,13 +146,23 @@ class AdminController extends Controller
             'brand_id' => 'required|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'badge' => 'nullable|string|max:50',
-            'image' => 'nullable|string|max:255',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
             'rating' => 'nullable|numeric|min:1|max:5',
             'reviews' => 'nullable|integer|min:0',
             'is_featured' => 'nullable|boolean',
             'specs_key' => 'nullable|array',
             'specs_val' => 'nullable|array',
+        ], [
+            'image_file.image' => 'The uploaded file must be a valid image.',
+            'image_file.mimes' => 'The image must be a file of type: jpeg, png, jpg, webp, gif.',
+            'image_file.max' => 'The image size may not be greater than 5MB.',
         ]);
+
+        $imagePath = $product->image;
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('products', 'public');
+            $imagePath = 'storage/' . $path;
+        }
 
         $specs = [];
         if (!empty($request->specs_key) && !empty($request->specs_val)) {
@@ -159,7 +179,7 @@ class AdminController extends Controller
             'brand_id' => $validated['brand_id'],
             'price' => $validated['price'],
             'badge' => $validated['badge'] ?? null,
-            'image' => $validated['image'] ?: $product->image,
+            'image' => $imagePath,
             'rating' => $validated['rating'] ?? 5.0,
             'reviews' => $validated['reviews'] ?? 0,
             'is_featured' => $request->has('is_featured'),
@@ -270,14 +290,22 @@ class AdminController extends Controller
     public function storeBlog(Request $request)
     {
         $validated = $request->validate([
-            'title'      => 'required|string|max:255',
-            'category'   => 'required|string|max:100',
-            'author'     => 'required|string|max:150',
-            'excerpt'    => 'required|string|max:500',
-            'body'       => 'required|string',
-            'cover_image'=> 'nullable|string|max:255',
-            'read_time'  => 'nullable|integer|min:1',
+            'title'            => 'required|string|max:255',
+            'category'         => 'required|string|max:100',
+            'author'           => 'required|string|max:150',
+            'excerpt'          => 'required|string|max:500',
+            'body'             => 'required|string',
+            'cover_image_file' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'read_time'        => 'nullable|integer|min:1',
+        ], [
+            'cover_image_file.required' => 'Please upload a blog cover image.',
+            'cover_image_file.image' => 'The cover must be a valid image file.',
+            'cover_image_file.mimes' => 'The image must be a file of type: jpeg, png, jpg, webp, gif.',
+            'cover_image_file.max' => 'The image size may not be greater than 5MB.',
         ]);
+
+        $path = $request->file('cover_image_file')->store('blogs', 'public');
+        $coverPath = 'storage/' . $path;
 
         Blog::create([
             'title'        => $validated['title'],
@@ -286,7 +314,7 @@ class AdminController extends Controller
             'author'       => $validated['author'],
             'excerpt'      => $validated['excerpt'],
             'body'         => $validated['body'],
-            'cover_image'  => $validated['cover_image'] ?: 'images/product_solar_panel.png',
+            'cover_image'  => $coverPath,
             'read_time'    => $validated['read_time'] ?? 5,
             'is_published' => $request->has('is_published'),
             'is_featured'  => $request->has('is_featured'),
@@ -313,14 +341,24 @@ class AdminController extends Controller
         $blog = Blog::findOrFail($id);
 
         $validated = $request->validate([
-            'title'      => 'required|string|max:255',
-            'category'   => 'required|string|max:100',
-            'author'     => 'required|string|max:150',
-            'excerpt'    => 'required|string|max:500',
-            'body'       => 'required|string',
-            'cover_image'=> 'nullable|string|max:255',
-            'read_time'  => 'nullable|integer|min:1',
+            'title'            => 'required|string|max:255',
+            'category'         => 'required|string|max:100',
+            'author'           => 'required|string|max:150',
+            'excerpt'          => 'required|string|max:500',
+            'body'             => 'required|string',
+            'cover_image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'read_time'        => 'nullable|integer|min:1',
+        ], [
+            'cover_image_file.image' => 'The cover must be a valid image file.',
+            'cover_image_file.mimes' => 'The image must be a file of type: jpeg, png, jpg, webp, gif.',
+            'cover_image_file.max' => 'The image size may not be greater than 5MB.',
         ]);
+
+        $coverPath = $blog->cover_image;
+        if ($request->hasFile('cover_image_file')) {
+            $path = $request->file('cover_image_file')->store('blogs', 'public');
+            $coverPath = 'storage/' . $path;
+        }
 
         $wasUnpublished = !$blog->is_published;
         $nowPublishing  = $request->has('is_published');
@@ -331,7 +369,7 @@ class AdminController extends Controller
             'author'       => $validated['author'],
             'excerpt'      => $validated['excerpt'],
             'body'         => $validated['body'],
-            'cover_image'  => $validated['cover_image'] ?: $blog->cover_image,
+            'cover_image'  => $coverPath,
             'read_time'    => $validated['read_time'] ?? 5,
             'is_published' => $nowPublishing,
             'is_featured'  => $request->has('is_featured'),

@@ -20,7 +20,7 @@
     </div>
 @endif
 
-<form action="{{ route('admin.products.update', $product->id) }}" method="POST">
+<form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     <div style="display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start;">
@@ -77,16 +77,36 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Badge Label</label>
-                            <input type="text" name="badge" value="{{ old('badge', $product->badge) }}" placeholder="e.g. Best Seller, New Arrival"
-                                style="width: 100%; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: inherit; box-sizing: border-box;">
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Badge Label</label>
+                        <input type="text" name="badge" value="{{ old('badge', $product->badge) }}" placeholder="e.g. Best Seller, New Arrival"
+                            style="width: 100%; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: inherit; box-sizing: border-box;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Product Image <span style="color:#64748B; font-weight:normal;">(JPG, PNG, WEBP, max 5MB — leave empty to keep current)</span></label>
+                        
+                        <!-- Current image indicator -->
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px; padding: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;">
+                            <img src="{{ asset($product->image) }}" alt="{{ $product->title }}" style="width: 50px; height: 50px; object-fit: contain; background: white; border-radius: 6px; border: 1px solid #E2E8F0; padding: 4px;">
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">Current Image</div>
+                                <div style="font-size: 12px; color: #0F172A; word-break: break-all;">{{ $product->image }}</div>
+                            </div>
                         </div>
-                        <div>
-                            <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Image Path</label>
-                            <input type="text" name="image" value="{{ old('image', $product->image) }}"
-                                style="width: 100%; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: inherit; box-sizing: border-box;">
+
+                        <!-- Upload area -->
+                        <div style="border: 2px dashed #CBD5E1; border-radius: 12px; padding: 16px; background: #F8FAFC; text-align: center; cursor: pointer; transition: border-color 0.2s;" onclick="document.getElementById('editImageFileInput').click();">
+                            <input type="file" id="editImageFileInput" name="image_file" accept="image/*" style="display: none;" onchange="previewEditImage(this)">
+                            <div id="editUploadPrompt" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                <div style="font-size: 24px;">🔄</div>
+                                <div style="font-size: 13px; font-weight: 700; color: #0F172A;">Click to upload replacement image</div>
+                                <div style="font-size: 11px; color: #64748B;">PNG, JPG, WEBP up to 5MB</div>
+                            </div>
+                            <div id="editImagePreviewContainer" style="display: none; margin-top: 10px;">
+                                <img id="editImagePreview" src="" alt="New Preview" style="max-height: 160px; max-width: 100%; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                                <div id="editImageFileName" style="margin-top: 6px; font-size: 12px; font-weight: 600; color: #051C12;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -172,6 +192,20 @@ function addSpec() {
 
 function removeSpec(btn) {
     btn.closest('.spec-row').remove();
+}
+
+function previewEditImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('editImagePreview').src = e.target.result;
+            document.getElementById('editImageFileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+            document.getElementById('editImagePreviewContainer').style.display = 'block';
+            document.getElementById('editUploadPrompt').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
 }
 </script>
 @endsection

@@ -20,7 +20,7 @@
     </div>
 @endif
 
-<form action="{{ route('admin.products.store') }}" method="POST">
+<form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
     <div style="display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start;">
 
@@ -79,17 +79,25 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Badge Label</label>
-                            <input type="text" name="badge" value="{{ old('badge') }}" placeholder="e.g. Best Seller, New Arrival"
-                                style="width: 100%; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: inherit; box-sizing: border-box;">
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Image Path</label>
-                            <input type="text" name="image" value="{{ old('image', 'images/product_solar_panel.png') }}"
-                                placeholder="images/product_solar_panel.png"
-                                style="width: 100%; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: inherit; box-sizing: border-box;">
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Badge Label</label>
+                        <input type="text" name="badge" value="{{ old('badge') }}" placeholder="e.g. Best Seller, New Arrival"
+                            style="width: 100%; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: inherit; box-sizing: border-box;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Product Image * <span style="color:#64748B; font-weight:normal;">(JPG, PNG, WEBP, max 5MB)</span></label>
+                        <div style="border: 2px dashed #CBD5E1; border-radius: 12px; padding: 16px; background: #F8FAFC; text-align: center; cursor: pointer; transition: border-color 0.2s;" onclick="document.getElementById('imageFileInput').click();">
+                            <input type="file" id="imageFileInput" name="image_file" accept="image/*" required style="display: none;" onchange="previewImage(this)">
+                            <div id="uploadPrompt" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div style="font-size: 28px;">📷</div>
+                                <div style="font-size: 13px; font-weight: 700; color: #0F172A;">Click to upload product image</div>
+                                <div style="font-size: 11px; color: #64748B;">PNG, JPG, WEBP up to 5MB</div>
+                            </div>
+                            <div id="imagePreviewContainer" style="display: none; margin-top: 10px;">
+                                <img id="imagePreview" src="" alt="Preview" style="max-height: 160px; max-width: 100%; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                                <div id="imageFileName" style="margin-top: 6px; font-size: 12px; font-weight: 600; color: #051C12;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -154,6 +162,20 @@ function addSpec() {
 
 function removeSpec(btn) {
     btn.closest('.spec-row').remove();
+}
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').src = e.target.result;
+            document.getElementById('imageFileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+            document.getElementById('imagePreviewContainer').style.display = 'block';
+            document.getElementById('uploadPrompt').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
 }
 </script>
 @endsection

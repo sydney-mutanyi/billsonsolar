@@ -157,10 +157,16 @@
             </a>
         </nav>
 
-        <div style="padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
+        <div style="padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto; display:flex; flex-direction:column; gap:12px;">
             <a href="{{ route('home') }}" target="_blank" style="color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; text-decoration:none;">
                 ↗ View Live Public Site
             </a>
+            <form method="POST" action="{{ route('admin.logout') }}" style="margin:0;">
+                @csrf
+                <button type="submit" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.8); font-size:12px; font-weight:600; padding:8px 14px; border-radius:8px; cursor:pointer; width:100%; text-align:left; transition:background 0.2s;" onmouseover="this.style.background='rgba(220,38,38,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+                    🚪 Sign Out
+                </button>
+            </form>
         </div>
     </aside>
 
@@ -172,6 +178,9 @@
             </div>
 
             <div style="display: flex; gap: 12px; align-items: center;">
+                @if(session('admin_email'))
+                <span style="font-size:12px; color:#64748b;">{{ session('admin_email') }}</span>
+                @endif
                 <a href="{{ route('admin.products.create') }}" class="admin-btn admin-btn-gold">
                     + Add New Product
                 </a>
