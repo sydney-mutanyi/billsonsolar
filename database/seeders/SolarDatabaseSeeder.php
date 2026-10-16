@@ -53,6 +53,7 @@ class SolarDatabaseSeeder extends Seeder
                 'rating' => 4.9,
                 'reviews' => 124,
                 'badge' => 'Best Seller',
+                'description' => 'Ultra-high efficiency 550W monocrystalline half-cell solar module engineered specifically for equatorial high-temperature regions. Features multi-busbar technology for reduced internal resistance and superior low-light performance across Kenya.',
                 'image' => 'images/product_solar_panel.png',
                 'is_featured' => true,
                 'specs' => [
@@ -72,6 +73,7 @@ class SolarDatabaseSeeder extends Seeder
                 'rating' => 4.8,
                 'reviews' => 89,
                 'badge' => 'New Arrival',
+                'description' => 'High-performance lithium iron phosphate (LiFePO4) energy storage battery designed for daily deep-cycle residential and commercial duty. Built-in smart BMS provides seamless communication with leading hybrid inverters.',
                 'image' => 'images/product_lithium_battery.png',
                 'is_featured' => true,
                 'specs' => [
@@ -91,6 +93,7 @@ class SolarDatabaseSeeder extends Seeder
                 'rating' => 5.0,
                 'reviews' => 203,
                 'badge' => 'Top Rated',
+                'description' => 'Versatile 5kW low-voltage hybrid inverter supporting both on-grid export, net-metering, and off-grid UPS backup. Delivers ultra-fast under 10ms transfer times during power cuts with integrated mobile app telemetry.',
                 'image' => 'images/product_hybrid_inverter.png',
                 'is_featured' => true,
                 'specs' => [
@@ -110,6 +113,7 @@ class SolarDatabaseSeeder extends Seeder
                 'rating' => 4.9,
                 'reviews' => 67,
                 'badge' => 'Premium Grade',
+                'description' => 'Ultra-fast Maximum Power Point Tracking (MPPT) charge controller by Victron Energy. Optimizes solar energy harvest up to 30% over PWM controllers and features Bluetooth connectivity for full remote control via the VictronConnect app.',
                 'image' => 'images/product_mppt_controller.png',
                 'is_featured' => true,
                 'specs' => [
@@ -129,6 +133,7 @@ class SolarDatabaseSeeder extends Seeder
                 'rating' => 4.9,
                 'reviews' => 42,
                 'badge' => 'Commercial',
+                'description' => 'Commercial grade 10kW 3-phase hybrid solar inverter suitable for large homes, schools, hospitals, and industrial facilities. Equipped with dual MPPT trackers, up to 98.2% conversion efficiency, and IP65 weatherproof casing.',
                 'is_featured' => false,
                 'image' => 'images/product_hybrid_inverter.png',
                 'specs' => [
@@ -147,6 +152,7 @@ class SolarDatabaseSeeder extends Seeder
                 'rating' => 4.8,
                 'reviews' => 31,
                 'badge' => 'High Capacity',
+                'description' => 'Heavy-duty modular high-voltage lithium battery stack offering 10.24kWh usable storage with expandable modular architecture. Ideal for large residential and commercial off-grid installations with 6,000+ cycle durability.',
                 'is_featured' => false,
                 'image' => 'images/product_lithium_battery.png',
                 'specs' => [

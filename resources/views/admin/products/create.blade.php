@@ -86,6 +86,13 @@
                     </div>
 
                     <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Product Description</label>
+                        <textarea name="description" rows="4" placeholder="Detailed product description, key highlights, performance notes..."
+                            style="width: 100%; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: inherit; box-sizing: border-box; resize: vertical; transition: border-color 0.2s;"
+                            onfocus="this.style.borderColor='#051C12'" onblur="this.style.borderColor='#E2E8F0'">{{ old('description') }}</textarea>
+                    </div>
+
+                    <div>
                         <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Product Image * <span style="color:#64748B; font-weight:normal;">(JPG, PNG, WEBP, max 5MB)</span></label>
                         <div style="border: 2px dashed #CBD5E1; border-radius: 12px; padding: 16px; background: #F8FAFC; text-align: center; cursor: pointer; transition: border-color 0.2s;" onclick="document.getElementById('imageFileInput').click();">
                             <input type="file" id="imageFileInput" name="image_file" accept="image/*" required style="display: none;" onchange="previewImage(this)">

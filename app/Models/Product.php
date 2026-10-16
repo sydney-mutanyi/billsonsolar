@@ -18,6 +18,7 @@ class Product extends Model
         'rating',
         'reviews',
         'badge',
+        'description',
         'image',
         'specs',
         'is_featured',

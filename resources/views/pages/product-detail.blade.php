@@ -47,9 +47,7 @@
                     </span>
                 </div>
 
-                <p style="font-size: 15px; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 32px;">
-                    Engineered for high-duty Kenyan solar conditions. Built with Grade A components, superior thermal stability, and maximum energy output. Includes full manufacturer warranty and technical support.
-                </p>
+                <div style="font-size: 15px; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 32px; white-space: pre-line;">{{ $product->description ?: 'Engineered for high-duty Kenyan solar conditions. Built with Grade A components, superior thermal stability, and maximum energy output. Includes full manufacturer warranty and technical support.' }}</div>
 
                 <!-- Actions -->
                 <form action="{{ route('cart.add') }}" method="POST" style="margin-bottom: 36px;">
