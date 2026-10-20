@@ -167,21 +167,24 @@
                 <a href="{{ route('admin.products.index') }}" style="display: block; text-align: center; margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none;">Cancel & Go Back</a>
             </div>
 
-            <div class="admin-card" style="border-color: #FECACA;">
-                <h3 style="font-size: 14px; font-weight: 800; color: #991B1B; margin-bottom: 8px;">Danger Zone</h3>
-                <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">Permanently delete this product from the database.</p>
-                <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this product?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;">
-                        Delete Product Permanently
-                    </button>
-                </form>
-            </div>
         </div>
 
     </div>
 </form>
+
+<div style="max-width: 360px; margin-left: auto; margin-top: 20px;">
+    <div class="admin-card" style="border-color: #FECACA;">
+        <h3 style="font-size: 14px; font-weight: 800; color: #991B1B; margin-bottom: 8px;">Danger Zone</h3>
+        <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">Permanently delete this product from the database.</p>
+        <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this product?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;">
+                Delete Product Permanently
+            </button>
+        </form>
+    </div>
+</div>
 
 <script>
 function addSpec() {
