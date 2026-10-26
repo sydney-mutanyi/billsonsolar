@@ -12,23 +12,90 @@
             <span style="color:var(--color-charcoal); font-weight: 600;">{{ $product->title }}</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;">
+        @php
+            $galleryImages = $product->all_images;
+        @endphp
+
+        <div class="product-detail-grid">
             
-            <!-- Left Image Showcase -->
-            <div style="background: var(--color-cream); border-radius: 24px; padding: 40px; text-align: center; position: relative;">
-                @if($product->badge)
-                    <span class="product-badge" style="position: absolute; top: 20px; left: 20px;">{{ $product->badge }}</span>
-                @endif
-                <img src="{{ asset($product->image) }}" alt="{{ $product->title }}" style="max-height: 420px; margin: 0 auto; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.1));">
+            <!-- Left Image Showcase: Interactive Moving Carousel -->
+            <div class="product-gallery-showcase">
                 
-                <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px;">
-                    <div style="padding: 10px 16px; background: white; border-radius: 50px; font-size: 12px; font-weight: 700; color: var(--color-charcoal); border: 1px solid var(--color-border);">
-                        ✓ 10-Year Warranty
+                <!-- Main Carousel Frame -->
+                <div class="carousel-main-frame" id="productCarousel">
+                    @if($product->badge)
+                        <span class="product-badge carousel-badge">{{ $product->badge }}</span>
+                    @endif
+
+                    @if(count($galleryImages) > 1)
+                        <div class="carousel-counter" id="carouselCounter">
+                            <span id="currentSlideNum">1</span> / {{ count($galleryImages) }}
+                        </div>
+                    @endif
+
+                    <!-- Slides -->
+                    <div class="carousel-slides-wrapper" id="carouselSlides">
+                        @foreach($galleryImages as $index => $img)
+                            <div class="carousel-slide {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}">
+                                <img src="{{ asset($img) }}" 
+                                     alt="{{ $product->title }} — Photo {{ $index + 1 }}" 
+                                     loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                     onclick="openLightbox({{ $index }})"
+                                     class="carousel-img">
+                            </div>
+                        @endforeach
                     </div>
-                    <div style="padding: 10px 16px; background: white; border-radius: 50px; font-size: 12px; font-weight: 700; color: var(--color-charcoal); border: 1px solid var(--color-border);">
-                        ⚡ EPRA Approved
+
+                    @if(count($galleryImages) > 1)
+                        <!-- Nav Arrows -->
+                        <button type="button" class="carousel-nav-btn prev" onclick="prevSlide()" aria-label="Previous Photo">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button type="button" class="carousel-nav-btn next" onclick="nextSlide()" aria-label="Next Photo">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+
+                        <!-- Moving Auto-play Progress Bar -->
+                        <div class="carousel-progress-track">
+                            <div class="carousel-progress-bar" id="carouselProgressBar"></div>
+                        </div>
+                    @endif
+
+                    <!-- Zoom Button -->
+                    <button type="button" class="carousel-zoom-btn" onclick="openLightbox(currentSlideIndex)" title="Click to view full size">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
+                        <span>Enlarge</span>
+                    </button>
+                </div>
+
+                @if(count($galleryImages) > 1)
+                    <!-- Thumbnail Navigation Bar -->
+                    <div class="carousel-thumbnails-strip" id="thumbnailsStrip">
+                        @foreach($galleryImages as $index => $img)
+                            <button type="button" 
+                                    class="carousel-thumb {{ $index === 0 ? 'active' : '' }}" 
+                                    data-index="{{ $index }}"
+                                    onclick="goToSlide({{ $index }})" 
+                                    aria-label="View photo {{ $index + 1 }}">
+                                <img src="{{ asset($img) }}" alt="Thumbnail {{ $index + 1 }}">
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+
+                <!-- Trust Strip -->
+                <div class="gallery-trust-strip">
+                    <div class="trust-pill">
+                        <span style="color:#10B981; font-weight:900;">✓</span> 10-Year Warranty
+                    </div>
+                    <div class="trust-pill">
+                        <span style="color:#F5A623;">⚡</span> EPRA Approved
+                    </div>
+                    <div class="trust-pill">
+                        <span style="color:#3B82F6;">🚚</span> Fast Kenya Delivery
                     </div>
                 </div>
+
             </div>
 
             <!-- Right Details -->
@@ -118,4 +185,575 @@
     </div>
 </section>
 @endif
+
+<!-- Fullscreen Lightbox Modal -->
+<div id="productLightbox" class="product-lightbox-modal" onclick="handleLightboxBackdropClick(event)">
+    <button type="button" class="lightbox-btn-close" onclick="closeLightbox()" aria-label="Close Lightbox">&times;</button>
+    <button type="button" class="lightbox-nav-btn prev" onclick="lightboxPrev(event)" aria-label="Previous image">&#10094;</button>
+    <div class="lightbox-stage">
+        <img id="lightboxImg" src="" alt="Enlarged Product View">
+        <div class="lightbox-caption">
+            <span id="lightboxCounter">1 / 1</span> &bull; {{ $product->title }}
+        </div>
+    </div>
+    <button type="button" class="lightbox-nav-btn next" onclick="lightboxNext(event)" aria-label="Next image">&#10095;</button>
+</div>
+
+@push('styles')
+<style>
+/* Layout */
+.product-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+}
+@media (max-width: 920px) {
+    .product-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+    }
+}
+
+/* Gallery Showcase Box */
+.product-gallery-showcase {
+    background: var(--color-cream, #FAFCFB);
+    border: 1px solid var(--color-border, #E2E8F0);
+    border-radius: 24px;
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 10px 30px -5px rgba(0,0,0,0.03);
+}
+
+/* Main Carousel Stage */
+.carousel-main-frame {
+    position: relative;
+    height: 440px;
+    border-radius: 18px;
+    background: radial-gradient(circle at center, #FFFFFF 0%, #F4F8F5 100%);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+@media (max-width: 600px) {
+    .carousel-main-frame {
+        height: 320px;
+    }
+}
+
+/* Badge */
+.carousel-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+}
+
+/* Counter */
+.carousel-counter {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(5, 28, 18, 0.75);
+    color: white;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 800;
+    z-index: 10;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Slides */
+.carousel-slides-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+.carousel-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.96) translate3d(0, 0, 0);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s;
+    padding: 24px;
+}
+.carousel-slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translate3d(0, 0, 0);
+    z-index: 2;
+}
+.carousel-img {
+    max-height: 360px;
+    max-width: 88%;
+    object-fit: contain;
+    margin: 0 auto;
+    filter: drop-shadow(0 15px 30px rgba(5, 28, 18, 0.12));
+    cursor: zoom-in;
+    transition: transform 0.35s ease;
+}
+.carousel-img:hover {
+    transform: scale(1.035);
+}
+
+/* Nav Buttons */
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: #051C12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+.carousel-nav-btn svg {
+    width: 18px;
+    height: 18px;
+}
+.carousel-nav-btn.prev { left: 14px; }
+.carousel-nav-btn.next { right: 14px; }
+.carousel-nav-btn:hover {
+    background: #F5A623;
+    color: #051C12;
+    transform: translateY(-50%) scale(1.08);
+    box-shadow: 0 6px 20px rgba(245, 166, 35, 0.4);
+}
+
+/* Zoom Button */
+.carousel-zoom-btn {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: #051C12;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 10;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.2s ease;
+}
+.carousel-zoom-btn:hover {
+    background: #051C12;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Moving Auto-play Progress Bar */
+.carousel-progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.05);
+    z-index: 9;
+}
+.carousel-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #F5A623, #FFC14D);
+    border-radius: 0 2px 2px 0;
+    transition: width 0.08s linear;
+}
+
+/* Thumbnails Strip */
+.carousel-thumbnails-strip {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    overflow-x: auto;
+    padding: 4px 2px 8px;
+    justify-content: center;
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+}
+.carousel-thumbnails-strip::-webkit-scrollbar {
+    height: 4px;
+}
+.carousel-thumbnails-strip::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+}
+.carousel-thumb {
+    flex: 0 0 68px;
+    height: 68px;
+    border-radius: 12px;
+    background: white;
+    border: 2px solid var(--color-border, #E2E8F0);
+    padding: 4px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    overflow: hidden;
+    outline: none;
+}
+.carousel-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+}
+.carousel-thumb:hover {
+    border-color: #94A3B8;
+    transform: translateY(-2px);
+}
+.carousel-thumb.active {
+    border-color: #F5A623;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 14px rgba(245, 166, 35, 0.35);
+}
+
+/* Trust Strip */
+.gallery-trust-strip {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+.trust-pill {
+    padding: 8px 14px;
+    background: white;
+    border-radius: 50px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--color-charcoal, #051C12);
+    border: 1px solid var(--color-border, #E2E8F0);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+/* Lightbox Modal */
+.product-lightbox-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: rgba(5, 28, 18, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    align-items: center;
+    justify-content: center;
+    animation: fadeInLightbox 0.25s ease forwards;
+}
+.product-lightbox-modal.open {
+    display: flex;
+}
+@keyframes fadeInLightbox {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.lightbox-stage {
+    max-width: 90vw;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+#lightboxImg {
+    max-width: 85vw;
+    max-height: 75vh;
+    object-fit: contain;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: zoomInImg 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes zoomInImg {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+.lightbox-caption {
+    margin-top: 14px;
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+.lightbox-btn-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 26px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.lightbox-btn-close:hover {
+    background: rgba(220, 38, 38, 0.85);
+    transform: scale(1.08);
+}
+.lightbox-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.lightbox-nav-btn.prev { left: 24px; }
+.lightbox-nav-btn.next { right: 24px; }
+.lightbox-nav-btn:hover {
+    background: #F5A623;
+    color: #051C12;
+    transform: translateY(-50%) scale(1.1);
+}
+@media (max-width: 600px) {
+    .lightbox-nav-btn { width: 40px; height: 40px; font-size: 18px; }
+    .lightbox-nav-btn.prev { left: 10px; }
+    .lightbox-nav-btn.next { right: 10px; }
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+(function() {
+    const imagesList = @json(array_values($galleryImages));
+    const totalSlides = imagesList.length;
+    let currentSlideIndex = 0;
+    let isPaused = false;
+    let autoPlayInterval = null;
+    let progressTimer = null;
+    let progressPercent = 0;
+    const slideDuration = 4200; // 4.2s per slide
+    const progressStep = 50; // update bar every 50ms
+
+    window.currentSlideIndex = currentSlideIndex;
+
+    const slides = document.querySelectorAll('.carousel-slide');
+    const thumbs = document.querySelectorAll('.carousel-thumb');
+    const counterEl = document.getElementById('currentSlideNum');
+    const progressBar = document.getElementById('carouselProgressBar');
+    const carouselFrame = document.getElementById('productCarousel');
+
+    function updateSlide(newIndex) {
+        if (totalSlides <= 0) return;
+        currentSlideIndex = (newIndex + totalSlides) % totalSlides;
+        window.currentSlideIndex = currentSlideIndex;
+
+        // Update slides
+        slides.forEach((s, idx) => {
+            if (idx === currentSlideIndex) {
+                s.classList.add('active');
+            } else {
+                s.classList.remove('active');
+            }
+        });
+
+        // Update thumbnails
+        thumbs.forEach((t, idx) => {
+            if (idx === currentSlideIndex) {
+                t.classList.add('active');
+                t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+                t.classList.remove('active');
+            }
+        });
+
+        // Update Counter
+        if (counterEl) {
+            counterEl.textContent = currentSlideIndex + 1;
+        }
+
+        // Reset progress bar on manual slide change
+        resetProgress();
+    }
+
+    window.nextSlide = function() {
+        updateSlide(currentSlideIndex + 1);
+    };
+
+    window.prevSlide = function() {
+        updateSlide(currentSlideIndex - 1);
+    };
+
+    window.goToSlide = function(idx) {
+        updateSlide(idx);
+    };
+
+    // Auto-advance progress ticker
+    function startAutoPlay() {
+        if (totalSlides <= 1) return;
+
+        clearInterval(progressTimer);
+        progressPercent = 0;
+
+        progressTimer = setInterval(() => {
+            if (!isPaused) {
+                progressPercent += (progressStep / slideDuration) * 100;
+                if (progressBar) {
+                    progressBar.style.width = Math.min(progressPercent, 100) + '%';
+                }
+                if (progressPercent >= 100) {
+                    progressPercent = 0;
+                    nextSlide();
+                }
+            }
+        }, progressStep);
+    }
+
+    function resetProgress() {
+        progressPercent = 0;
+        if (progressBar) {
+            progressBar.style.width = '0%';
+        }
+    }
+
+    // Hover pause & resume
+    if (carouselFrame) {
+        carouselFrame.addEventListener('mouseenter', () => { isPaused = true; });
+        carouselFrame.addEventListener('mouseleave', () => { isPaused = false; });
+
+        // Touch swiping on mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        carouselFrame.addEventListener('touchstart', (e) => {
+            isPaused = true;
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        carouselFrame.addEventListener('touchend', (e) => {
+            isPaused = false;
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeDiff = touchEndX - touchStartX;
+            if (Math.abs(swipeDiff) > 40) {
+                if (swipeDiff < 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        }
+    }
+
+    // Start auto carousel
+    if (totalSlides > 1) {
+        startAutoPlay();
+    }
+
+    /* ---- Lightbox Modal ---- */
+    const lightbox = document.getElementById('productLightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxCounter = document.getElementById('lightboxCounter');
+
+    window.openLightbox = function(index) {
+        if (index === undefined || index === null) index = currentSlideIndex;
+        currentSlideIndex = index;
+        updateSlide(index);
+
+        if (lightbox && lightboxImg) {
+            lightboxImg.src = '{{ asset("") }}' + imagesList[currentSlideIndex].replace(/^\//, '');
+            if (lightboxCounter) {
+                lightboxCounter.textContent = `${currentSlideIndex + 1} / ${totalSlides}`;
+            }
+            lightbox.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            isPaused = true;
+        }
+    };
+
+    window.closeLightbox = function() {
+        if (lightbox) {
+            lightbox.classList.remove('open');
+            document.body.style.overflow = '';
+            isPaused = false;
+        }
+    };
+
+    window.handleLightboxBackdropClick = function(e) {
+        if (e.target === lightbox || e.target.classList.contains('lightbox-stage')) {
+            closeLightbox();
+        }
+    };
+
+    window.lightboxNext = function(e) {
+        if (e) e.stopPropagation();
+        nextSlide();
+        if (lightboxImg) {
+            lightboxImg.src = '{{ asset("") }}' + imagesList[currentSlideIndex].replace(/^\//, '');
+            if (lightboxCounter) {
+                lightboxCounter.textContent = `${currentSlideIndex + 1} / ${totalSlides}`;
+            }
+        }
+    };
+
+    window.lightboxPrev = function(e) {
+        if (e) e.stopPropagation();
+        prevSlide();
+        if (lightboxImg) {
+            lightboxImg.src = '{{ asset("") }}' + imagesList[currentSlideIndex].replace(/^\//, '');
+            if (lightboxCounter) {
+                lightboxCounter.textContent = `${currentSlideIndex + 1} / ${totalSlides}`;
+            }
+        }
+    };
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (lightbox && lightbox.classList.contains('open')) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight') lightboxNext();
+            if (e.key === 'ArrowLeft') lightboxPrev();
+        }
+    });
+
+})();
+</script>
+@endpush
 @endsection
+

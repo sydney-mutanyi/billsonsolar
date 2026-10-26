@@ -77,22 +77,47 @@ class AdminController extends Controller
             'price' => 'required|numeric|min:0',
             'badge' => 'nullable|string|max:50',
             'description' => 'nullable|string',
-            'image_file' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'primary_image_index' => 'nullable|integer|min:0',
             'rating' => 'nullable|numeric|min:1|max:5',
             'reviews' => 'nullable|integer|min:0',
             'is_featured' => 'nullable|boolean',
             'specs_key' => 'nullable|array',
             'specs_val' => 'nullable|array',
         ], [
-            'image_file.required' => 'Please upload a product image.',
+            'images.*.image' => 'Each uploaded product file must be a valid image.',
+            'images.*.mimes' => 'Images must be a file of type: jpeg, png, jpg, webp, gif.',
+            'images.*.max' => 'Each image size may not be greater than 5MB.',
             'image_file.image' => 'The uploaded file must be a valid image.',
             'image_file.mimes' => 'The image must be a file of type: jpeg, png, jpg, webp, gif.',
             'image_file.max' => 'The image size may not be greater than 5MB.',
         ]);
 
-        // Upload the image file to storage/app/public/products
-        $path = $request->file('image_file')->store('products', 'public');
-        $imagePath = 'storage/' . $path;
+        $storedImages = [];
+
+        // Upload single primary image if provided
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('products', 'public');
+            $storedImages[] = 'storage/' . $path;
+        }
+
+        // Upload multiple gallery images
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('products', 'public');
+                $storedImages[] = 'storage/' . $path;
+            }
+        }
+
+        if (empty($storedImages)) {
+            return back()->withInput()->withErrors(['images' => 'Please upload at least one product image.']);
+        }
+
+        // Determine primary cover image
+        $primaryIndex = (int) $request->input('primary_image_index', 0);
+        $primaryImage = $storedImages[$primaryIndex] ?? $storedImages[0];
 
         // Build Specs JSON
         $specs = [];
@@ -112,7 +137,8 @@ class AdminController extends Controller
             'price' => $validated['price'],
             'badge' => $validated['badge'] ?? null,
             'description' => $validated['description'] ?? null,
-            'image' => $imagePath,
+            'image' => $primaryImage,
+            'images' => $storedImages,
             'rating' => $validated['rating'] ?? 5.0,
             'reviews' => $validated['reviews'] ?? 0,
             'is_featured' => $request->has('is_featured'),
@@ -120,7 +146,7 @@ class AdminController extends Controller
             'specs' => $specs,
         ]);
 
-        return redirect()->route('admin.products.index')->with('success', 'Solar product created successfully with uploaded image!');
+        return redirect()->route('admin.products.index')->with('success', 'Solar product created successfully with uploaded images!');
     }
 
     /**
@@ -150,21 +176,67 @@ class AdminController extends Controller
             'badge' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'existing_images' => 'nullable|array',
+            'primary_image' => 'nullable|string',
             'rating' => 'nullable|numeric|min:1|max:5',
             'reviews' => 'nullable|integer|min:0',
             'is_featured' => 'nullable|boolean',
             'specs_key' => 'nullable|array',
             'specs_val' => 'nullable|array',
         ], [
+            'images.*.image' => 'Each uploaded product file must be a valid image.',
+            'images.*.mimes' => 'Images must be a file of type: jpeg, png, jpg, webp, gif.',
+            'images.*.max' => 'Each image size may not be greater than 5MB.',
             'image_file.image' => 'The uploaded file must be a valid image.',
             'image_file.mimes' => 'The image must be a file of type: jpeg, png, jpg, webp, gif.',
             'image_file.max' => 'The image size may not be greater than 5MB.',
         ]);
 
-        $imagePath = $product->image;
+        // Retain existing images selected by the admin
+        $keptImages = $request->input('existing_images', []);
+        if (!is_array($keptImages)) {
+            $keptImages = [];
+        }
+
+        // Track deleted existing images to optionally clean up disk
+        $originalImages = $product->all_images;
+        foreach ($originalImages as $origImg) {
+            if (!in_array($origImg, $keptImages, true)) {
+                if (Str::startsWith($origImg, 'storage/products/')) {
+                    $diskPath = Str::replaceFirst('storage/', '', $origImg);
+                    Storage::disk('public')->delete($diskPath);
+                }
+            }
+        }
+
+        // Upload any newly added gallery images
+        $newUploadedImages = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('products', 'public');
+                $newUploadedImages[] = 'storage/' . $path;
+            }
+        }
+
+        // If replacement single image_file was also uploaded
         if ($request->hasFile('image_file')) {
             $path = $request->file('image_file')->store('products', 'public');
-            $imagePath = 'storage/' . $path;
+            $newUploadedImages[] = 'storage/' . $path;
+        }
+
+        $allImages = array_values(array_filter(array_merge($keptImages, $newUploadedImages)));
+
+        // If completely empty, fallback to product's current image
+        if (empty($allImages)) {
+            $allImages = !empty($product->image) ? [$product->image] : [];
+        }
+
+        // Determine primary image
+        $primaryImage = $request->input('primary_image');
+        if (empty($primaryImage) || !in_array($primaryImage, $allImages, true)) {
+            $primaryImage = $allImages[0] ?? $product->image;
         }
 
         $specs = [];
@@ -183,7 +255,8 @@ class AdminController extends Controller
             'price' => $validated['price'],
             'badge' => $validated['badge'] ?? null,
             'description' => $validated['description'] ?? null,
-            'image' => $imagePath,
+            'image' => $primaryImage,
+            'images' => $allImages,
             'rating' => $validated['rating'] ?? 5.0,
             'reviews' => $validated['reviews'] ?? 0,
             'is_featured' => $request->has('is_featured'),
@@ -199,6 +272,15 @@ class AdminController extends Controller
     public function destroyProduct($id)
     {
         $product = Product::findOrFail($id);
+
+        // Delete stored files from disk
+        foreach ($product->all_images as $img) {
+            if (Str::startsWith($img, 'storage/products/')) {
+                $diskPath = Str::replaceFirst('storage/', '', $img);
+                Storage::disk('public')->delete($diskPath);
+            }
+        }
+
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully!');

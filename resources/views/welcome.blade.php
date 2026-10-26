@@ -219,29 +219,6 @@
     </div>
 </div>
 
-<!-- =============================================
-     STATS SECTION
-     ============================================= -->
-<section class="stats-section">
-    <div class="stats-inner">
-        <div class="stat-block" data-aos="fade-up">
-            <div class="counter-num"><span class="counter-val" data-target="500">0</span><span class="unit">+</span></div>
-            <div class="stat-label">Solar Installations Completed</div>
-        </div>
-        <div class="stat-block" data-aos="fade-up" style="transition-delay:0.1s">
-            <div class="counter-num"><span class="counter-val" data-target="200">0</span><span class="unit">+</span></div>
-            <div class="stat-label">Premium Products in Stock</div>
-        </div>
-        <div class="stat-block" data-aos="fade-up" style="transition-delay:0.2s">
-            <div class="counter-num"><span class="counter-val" data-target="47">0</span></div>
-            <div class="stat-label">Counties Served Across Kenya</div>
-        </div>
-        <div class="stat-block" data-aos="fade-up" style="transition-delay:0.3s">
-            <div class="counter-num"><span class="counter-val" data-target="10">0</span><span class="unit">yr</span></div>
-            <div class="stat-label">Product Warranty Coverage</div>
-        </div>
-    </div>
-</section>
 
 <!-- =============================================
      SHOP BY CATEGORY

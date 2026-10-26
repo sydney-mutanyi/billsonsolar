@@ -93,18 +93,38 @@
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Product Image * <span style="color:#64748B; font-weight:normal;">(JPG, PNG, WEBP, max 5MB)</span></label>
-                        <div style="border: 2px dashed #CBD5E1; border-radius: 12px; padding: 16px; background: #F8FAFC; text-align: center; cursor: pointer; transition: border-color 0.2s;" onclick="document.getElementById('imageFileInput').click();">
-                            <input type="file" id="imageFileInput" name="image_file" accept="image/*" required style="display: none;" onchange="previewImage(this)">
-                            <div id="uploadPrompt" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <div style="font-size: 28px;">📷</div>
-                                <div style="font-size: 13px; font-weight: 700; color: #0F172A;">Click to upload product image</div>
-                                <div style="font-size: 11px; color: #64748B;">PNG, JPG, WEBP up to 5MB</div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">
+                            Product Images * <span style="color:#64748B; font-weight:normal;">(Upload multiple images — JPG, PNG, WEBP, max 5MB each)</span>
+                        </label>
+                        
+                        <input type="file" id="multiImageInput" name="images[]" accept="image/*" multiple style="display: none;" onchange="handleFilesSelected(this.files)">
+                        <input type="hidden" id="primaryImageIndexInput" name="primary_image_index" value="0">
+
+                        <!-- Dropzone area (when empty) -->
+                        <div id="uploadPrompt" style="border: 2px dashed #CBD5E1; border-radius: 12px; padding: 28px 16px; background: #F8FAFC; text-align: center; cursor: pointer; transition: all 0.2s;"
+                             onclick="document.getElementById('multiImageInput').click();"
+                             ondragover="event.preventDefault(); this.style.borderColor='#F5A623'; this.style.background='#FFFDF5';"
+                             ondragleave="this.style.borderColor='#CBD5E1'; this.style.background='#F8FAFC';"
+                             ondrop="event.preventDefault(); this.style.borderColor='#CBD5E1'; this.style.background='#F8FAFC'; handleFilesSelected(event.dataTransfer.files);">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📸</div>
+                            <div style="font-size: 14px; font-weight: 800; color: #0F172A; margin-bottom: 4px;">Click or Drag & Drop Multiple Images Here</div>
+                            <div style="font-size: 12px; color: #64748B;">You can select multiple photos at once. The first image will be the primary cover (or click any thumbnail to change it).</div>
+                        </div>
+
+                        <!-- Preview Gallery (when files are chosen) -->
+                        <div id="imageGalleryContainer" style="display: none; margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <div id="galleryCountLabel" style="font-size: 12px; font-weight: 700; color: #0F172A;">0 images selected</div>
+                                <button type="button" onclick="document.getElementById('multiImageInput').click();" style="background: #F1F5F9; color: #0F172A; border: 1px solid #CBD5E1; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;">+ Add More Photos</button>
                             </div>
-                            <div id="imagePreviewContainer" style="display: none; margin-top: 10px;">
-                                <img id="imagePreview" src="" alt="Preview" style="max-height: 160px; max-width: 100%; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                <div id="imageFileName" style="margin-top: 6px; font-size: 12px; font-weight: 600; color: #051C12;"></div>
+
+                            <div id="previewGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;">
+                                <!-- Dynamically generated thumbnails -->
                             </div>
+
+                            <p style="font-size: 11px; color: #64748B; margin-top: 8px;">
+                                💡 <strong>Tip:</strong> Click the "Set as Cover" badge on any image to choose which photo is displayed first in the shop catalog.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -142,7 +162,7 @@
 
             <div class="admin-card" style="background: #051C12; border-color: #051C12;">
                 <h3 style="font-size: 14px; font-weight: 800; color: white; margin-bottom: 8px;">Ready to Publish?</h3>
-                <p style="font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; margin-bottom: 16px;">This product will be immediately visible on the public shop page once saved.</p>
+                <p style="font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; margin-bottom: 16px;">This product will be immediately visible on the public shop page with all uploaded gallery images.</p>
                 <button type="submit" class="admin-btn admin-btn-gold" style="width: 100%; justify-content: center; padding: 13px 20px;">
                     Save Solar Product →
                 </button>
@@ -154,6 +174,143 @@
 </form>
 
 <script>
+let selectedFilesList = [];
+let primaryImageIndex = 0;
+
+function handleFilesSelected(newFiles) {
+    if (!newFiles || newFiles.length === 0) return;
+
+    for (let i = 0; i < newFiles.length; i++) {
+        // Prevent duplicate file names if possible
+        const exists = selectedFilesList.some(f => f.name === newFiles[i].name && f.size === newFiles[i].size);
+        if (!exists) {
+            selectedFilesList.push(newFiles[i]);
+        }
+    }
+
+    syncFileInput();
+    renderGallery();
+}
+
+function syncFileInput() {
+    const input = document.getElementById('multiImageInput');
+    const dt = new DataTransfer();
+    selectedFilesList.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+}
+
+function removeFile(index) {
+    selectedFilesList.splice(index, 1);
+    if (primaryImageIndex >= selectedFilesList.length) {
+        primaryImageIndex = Math.max(0, selectedFilesList.length - 1);
+    }
+    syncFileInput();
+    renderGallery();
+}
+
+function setPrimaryImage(index) {
+    primaryImageIndex = index;
+    document.getElementById('primaryImageIndexInput').value = index;
+    renderGallery();
+}
+
+function renderGallery() {
+    const prompt = document.getElementById('uploadPrompt');
+    const container = document.getElementById('imageGalleryContainer');
+    const grid = document.getElementById('previewGrid');
+    const countLabel = document.getElementById('galleryCountLabel');
+
+    if (selectedFilesList.length === 0) {
+        prompt.style.display = 'block';
+        container.style.display = 'none';
+        return;
+    }
+
+    prompt.style.display = 'none';
+    container.style.display = 'block';
+    countLabel.textContent = `${selectedFilesList.length} image${selectedFilesList.length > 1 ? 's' : ''} ready`;
+    document.getElementById('primaryImageIndexInput').value = primaryImageIndex;
+
+    grid.innerHTML = '';
+
+    selectedFilesList.forEach((file, idx) => {
+        const card = document.createElement('div');
+        const isCover = (idx === primaryImageIndex);
+        card.style.cssText = `
+            position: relative;
+            background: white;
+            border: 2px solid ${isCover ? '#F5A623' : '#E2E8F0'};
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: ${isCover ? '0 4px 12px rgba(245,166,35,0.25)' : '0 2px 4px rgba(0,0,0,0.03)'};
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        `;
+
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.style.cssText = 'width: 100%; height: 110px; object-fit: contain; background: #FAFCFB; padding: 6px;';
+        img.alt = file.name;
+
+        // Cover badge / set button
+        const badgeBtn = document.createElement('button');
+        badgeBtn.type = 'button';
+        badgeBtn.onclick = () => setPrimaryImage(idx);
+        badgeBtn.style.cssText = `
+            border: none;
+            cursor: pointer;
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 5px 8px;
+            text-align: center;
+            background: ${isCover ? '#F5A623' : '#F1F5F9'};
+            color: ${isCover ? '#051C12' : '#475569'};
+            transition: background 0.2s;
+        `;
+        badgeBtn.textContent = isCover ? '★ Cover Image' : 'Set as Cover';
+
+        // Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.onclick = (e) => {
+            e.stopPropagation();
+            removeFile(idx);
+        };
+        removeBtn.style.cssText = `
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        `;
+        removeBtn.innerHTML = '×';
+        removeBtn.title = 'Remove this image';
+
+        // Filename info
+        const info = document.createElement('div');
+        info.style.cssText = 'padding: 4px 6px; font-size: 10px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: white;';
+        info.textContent = `${file.name} (${(file.size / 1024).toFixed(0)}KB)`;
+
+        card.appendChild(removeBtn);
+        card.appendChild(img);
+        card.appendChild(badgeBtn);
+        card.appendChild(info);
+        grid.appendChild(card);
+    });
+}
+
 function addSpec() {
     const container = document.getElementById('specsContainer');
     const row = document.createElement('div');
@@ -169,20 +326,6 @@ function addSpec() {
 
 function removeSpec(btn) {
     btn.closest('.spec-row').remove();
-}
-
-function previewImage(input) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('imagePreview').src = e.target.result;
-            document.getElementById('imageFileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
-            document.getElementById('imagePreviewContainer').style.display = 'block';
-            document.getElementById('uploadPrompt').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-    }
 }
 </script>
 @endsection

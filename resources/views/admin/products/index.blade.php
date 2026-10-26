@@ -44,8 +44,20 @@
                 <tr>
                     <td style="padding-left: 24px; color: #94A3B8; font-size: 12px;">{{ $product->id }}</td>
                     <td>
-                        <div style="font-weight: 700; color: #0F172A; font-size: 13px; max-width: 260px; line-height: 1.4;">{{ $product->title }}</div>
-                        <div style="font-size: 11px; color: #94A3B8; margin-top: 2px;">{{ $product->slug }}</div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="{{ asset($product->image) }}" alt="" style="width: 42px; height: 42px; object-fit: contain; background: #FAFCFB; border-radius: 8px; border: 1px solid #E2E8F0; padding: 2px; flex-shrink: 0;">
+                            <div>
+                                <div style="font-weight: 700; color: #0F172A; font-size: 13px; max-width: 250px; line-height: 1.4;">{{ $product->title }}</div>
+                                <div style="font-size: 11px; color: #94A3B8; margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    <span>{{ $product->slug }}</span>
+                                    @if(count($product->all_images) > 1)
+                                        <span style="background: #F8FAFC; color: #051C12; border: 1px solid #E2E8F0; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 800;">
+                                            📷 {{ count($product->all_images) }} photos
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </td>
                     <td>
                         <span style="background: #EFF6FF; color: #1D4ED8; padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; white-space: nowrap;">

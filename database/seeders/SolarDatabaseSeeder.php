@@ -55,6 +55,12 @@ class SolarDatabaseSeeder extends Seeder
                 'badge' => 'Best Seller',
                 'description' => 'Ultra-high efficiency 550W monocrystalline half-cell solar module engineered specifically for equatorial high-temperature regions. Features multi-busbar technology for reduced internal resistance and superior low-light performance across Kenya.',
                 'image' => 'images/product_solar_panel.png',
+                'images' => [
+                    'images/product_solar_panel.png',
+                    'images/solar_hero_1.png',
+                    'images/solar_hero_2.png',
+                    'images/solar_hero_3.png',
+                ],
                 'is_featured' => true,
                 'specs' => [
                     'Max Power (Pmax)' => '550W',
@@ -75,6 +81,11 @@ class SolarDatabaseSeeder extends Seeder
                 'badge' => 'New Arrival',
                 'description' => 'High-performance lithium iron phosphate (LiFePO4) energy storage battery designed for daily deep-cycle residential and commercial duty. Built-in smart BMS provides seamless communication with leading hybrid inverters.',
                 'image' => 'images/product_lithium_battery.png',
+                'images' => [
+                    'images/product_lithium_battery.png',
+                    'images/solar_hero_2.png',
+                    'images/product_hybrid_inverter.png',
+                ],
                 'is_featured' => true,
                 'specs' => [
                     'Nominal Capacity' => '5.12 kWh (100Ah / 51.2V)',
@@ -95,6 +106,11 @@ class SolarDatabaseSeeder extends Seeder
                 'badge' => 'Top Rated',
                 'description' => 'Versatile 5kW low-voltage hybrid inverter supporting both on-grid export, net-metering, and off-grid UPS backup. Delivers ultra-fast under 10ms transfer times during power cuts with integrated mobile app telemetry.',
                 'image' => 'images/product_hybrid_inverter.png',
+                'images' => [
+                    'images/product_hybrid_inverter.png',
+                    'images/solar_hero_1.png',
+                    'images/product_mppt_controller.png',
+                ],
                 'is_featured' => true,
                 'specs' => [
                     'Rated AC Output' => '5,000W Pure Sine Wave',

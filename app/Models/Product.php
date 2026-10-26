@@ -20,6 +20,7 @@ class Product extends Model
         'badge',
         'description',
         'image',
+        'images',
         'specs',
         'is_featured',
         'is_active',
@@ -27,11 +28,33 @@ class Product extends Model
 
     protected $casts = [
         'specs' => 'array',
+        'images' => 'array',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
         'price' => 'float',
         'rating' => 'float',
     ];
+
+    /**
+     * Retrieve all images for the product, guaranteeing a non-empty array if primary image exists.
+     *
+     * @return array<int, string>
+     */
+    public function getAllImagesAttribute(): array
+    {
+        $list = [];
+        if (!empty($this->images) && is_array($this->images)) {
+            $list = array_values(array_filter($this->images));
+        }
+
+        if (empty($list) && !empty($this->image)) {
+            $list = [$this->image];
+        } elseif (!empty($this->image) && !in_array($this->image, $list, true)) {
+            array_unshift($list, $this->image);
+        }
+
+        return $list;
+    }
 
     public function category()
     {

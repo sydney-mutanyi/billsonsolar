@@ -91,30 +91,63 @@
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px;">Product Image <span style="color:#64748B; font-weight:normal;">(JPG, PNG, WEBP, max 5MB — leave empty to keep current)</span></label>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 8px;">
+                            Product Gallery & Images <span style="color:#64748B; font-weight:normal;">(Manage existing photos & upload additional ones)</span>
+                        </label>
                         
-                        <!-- Current image indicator -->
-                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px; padding: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;">
-                            <img src="{{ asset($product->image) }}" alt="{{ $product->title }}" style="width: 50px; height: 50px; object-fit: contain; background: white; border-radius: 6px; border: 1px solid #E2E8F0; padding: 4px;">
-                            <div>
-                                <div style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">Current Image</div>
-                                <div style="font-size: 12px; color: #0F172A; word-break: break-all;">{{ $product->image }}</div>
+                        <!-- Existing Product Images -->
+                        <div style="margin-bottom: 18px;">
+                            <div style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.04em;">
+                                Existing Photos ({{ count($product->all_images) }})
+                            </div>
+                            
+                            <div id="existingImagesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;">
+                                @foreach($product->all_images as $idx => $img)
+                                    @php $isCover = ($product->image === $img || ($idx === 0 && empty($product->image))); @endphp
+                                    <div class="existing-image-card" id="existingCard_{{ $idx }}" style="position: relative; background: white; border: 2px solid {{ $isCover ? '#F5A623' : '#E2E8F0' }}; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; transition: all 0.2s; box-shadow: {{ $isCover ? '0 4px 12px rgba(245,166,35,0.25)' : '0 2px 4px rgba(0,0,0,0.03)' }};">
+                                        <input type="hidden" name="existing_images[]" value="{{ $img }}">
+                                        
+                                        <img src="{{ asset($img) }}" alt="Product Photo" style="width: 100%; height: 110px; object-fit: contain; background: #FAFCFB; padding: 6px;">
+                                        
+                                        <label style="border: none; cursor: pointer; font-size: 10.5px; font-weight: 800; padding: 5px 8px; text-align: center; background: {{ $isCover ? '#F5A623' : '#F1F5F9' }}; color: {{ $isCover ? '#051C12' : '#475569' }}; margin: 0; display: block;" class="cover-label">
+                                            <input type="radio" name="primary_image" value="{{ $img }}" {{ $isCover ? 'checked' : '' }} style="display: none;" onchange="updateCoverHighlight(this)">
+                                            <span class="cover-text">{{ $isCover ? '★ Cover Image' : 'Set as Cover' }}</span>
+                                        </label>
+
+                                        <button type="button" onclick="removeExistingImage('existingCard_{{ $idx }}')" title="Delete this image" style="position: absolute; top: 4px; right: 4px; background: rgba(220, 38, 38, 0.9); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                            ×
+                                        </button>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 
-                        <!-- Upload area -->
-                        <div style="border: 2px dashed #CBD5E1; border-radius: 12px; padding: 16px; background: #F8FAFC; text-align: center; cursor: pointer; transition: border-color 0.2s;" onclick="document.getElementById('editImageFileInput').click();">
-                            <input type="file" id="editImageFileInput" name="image_file" accept="image/*" style="display: none;" onchange="previewEditImage(this)">
-                            <div id="editUploadPrompt" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-                                <div style="font-size: 24px;">🔄</div>
-                                <div style="font-size: 13px; font-weight: 700; color: #0F172A;">Click to upload replacement image</div>
-                                <div style="font-size: 11px; color: #64748B;">PNG, JPG, WEBP up to 5MB</div>
-                            </div>
-                            <div id="editImagePreviewContainer" style="display: none; margin-top: 10px;">
-                                <img id="editImagePreview" src="" alt="New Preview" style="max-height: 160px; max-width: 100%; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                <div id="editImageFileName" style="margin-top: 6px; font-size: 12px; font-weight: 600; color: #051C12;"></div>
-                            </div>
+                        <!-- Upload Additional / Replacement Images -->
+                        <div style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.04em;">
+                            Add More Photos (JPG, PNG, WEBP, max 5MB each)
                         </div>
+
+                        <input type="file" id="editMultiImageInput" name="images[]" accept="image/*" multiple style="display: none;" onchange="handleNewFilesSelected(this.files)">
+
+                        <div id="editUploadPrompt" style="border: 2px dashed #CBD5E1; border-radius: 12px; padding: 20px 16px; background: #F8FAFC; text-align: center; cursor: pointer; transition: all 0.2s;"
+                             onclick="document.getElementById('editMultiImageInput').click();"
+                             ondragover="event.preventDefault(); this.style.borderColor='#F5A623'; this.style.background='#FFFDF5';"
+                             ondragleave="this.style.borderColor='#CBD5E1'; this.style.background='#F8FAFC';"
+                             ondrop="event.preventDefault(); this.style.borderColor='#CBD5E1'; this.style.background='#F8FAFC'; handleNewFilesSelected(event.dataTransfer.files);">
+                            <div style="font-size: 26px; margin-bottom: 6px;">📸</div>
+                            <div style="font-size: 13.5px; font-weight: 800; color: #0F172A; margin-bottom: 2px;">Click or Drag & Drop to Add New Photos</div>
+                            <div style="font-size: 11.5px; color: #64748B;">You can select multiple photos at once. They will be added to the gallery.</div>
+                        </div>
+
+                        <!-- New Images Preview Grid -->
+                        <div id="newImagesContainer" style="display: none; margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div id="newImagesCountLabel" style="font-size: 12px; font-weight: 700; color: #0F172A;">New photos ready to upload</div>
+                                <button type="button" onclick="document.getElementById('editMultiImageInput').click();" style="background: #F1F5F9; color: #0F172A; border: 1px solid #CBD5E1; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">+ Select More</button>
+                            </div>
+                            <div id="newImagesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;"></div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -160,7 +193,7 @@
 
             <div class="admin-card" style="background: #051C12; border-color: #051C12;">
                 <h3 style="font-size: 14px; font-weight: 800; color: white; margin-bottom: 8px;">Update Product</h3>
-                <p style="font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; margin-bottom: 16px;">Changes will be immediately reflected on the public shop page.</p>
+                <p style="font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; margin-bottom: 16px;">Changes and updated photos will be immediately reflected on the public shop page.</p>
                 <button type="submit" class="admin-btn admin-btn-gold" style="width: 100%; justify-content: center; padding: 13px 20px;">
                     Save Changes →
                 </button>
@@ -176,7 +209,7 @@
     <div class="admin-card" style="border-color: #FECACA;">
         <h3 style="font-size: 14px; font-weight: 800; color: #991B1B; margin-bottom: 8px;">Danger Zone</h3>
         <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">Permanently delete this product from the database.</p>
-        <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this product?')">
+        <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this product and all its uploaded photos?')">
             @csrf
             @method('DELETE')
             <button type="submit" style="background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;">
@@ -187,6 +220,155 @@
 </div>
 
 <script>
+let newFilesList = [];
+
+function updateCoverHighlight(radio) {
+    document.querySelectorAll('.existing-image-card').forEach(card => {
+        card.style.borderColor = '#E2E8F0';
+        card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.03)';
+        const lbl = card.querySelector('.cover-label');
+        if (lbl) {
+            lbl.style.background = '#F1F5F9';
+            lbl.style.color = '#475569';
+            lbl.querySelector('.cover-text').textContent = 'Set as Cover';
+        }
+    });
+
+    const activeCard = radio.closest('.existing-image-card');
+    if (activeCard) {
+        activeCard.style.borderColor = '#F5A623';
+        activeCard.style.boxShadow = '0 4px 12px rgba(245,166,35,0.25)';
+        const lbl = activeCard.querySelector('.cover-label');
+        if (lbl) {
+            lbl.style.background = '#F5A623';
+            lbl.style.color = '#051C12';
+            lbl.querySelector('.cover-text').textContent = '★ Cover Image';
+        }
+    }
+}
+
+function removeExistingImage(cardId) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+
+    const remainingCards = document.querySelectorAll('.existing-image-card');
+    if (remainingCards.length <= 1 && newFilesList.length === 0) {
+        alert('You must have at least one product image. Please upload a new image before removing this one.');
+        return;
+    }
+
+    const wasCover = card.querySelector('input[type="radio"]:checked');
+    card.remove();
+
+    if (wasCover) {
+        const nextCard = document.querySelector('.existing-image-card');
+        if (nextCard) {
+            const nextRadio = nextCard.querySelector('input[type="radio"]');
+            if (nextRadio) {
+                nextRadio.checked = true;
+                updateCoverHighlight(nextRadio);
+            }
+        }
+    }
+}
+
+function handleNewFilesSelected(files) {
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+        const exists = newFilesList.some(f => f.name === files[i].name && f.size === files[i].size);
+        if (!exists) {
+            newFilesList.push(files[i]);
+        }
+    }
+
+    syncNewFileInput();
+    renderNewGallery();
+}
+
+function syncNewFileInput() {
+    const input = document.getElementById('editMultiImageInput');
+    const dt = new DataTransfer();
+    newFilesList.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+}
+
+function removeNewFile(index) {
+    newFilesList.splice(index, 1);
+    syncNewFileInput();
+    renderNewGallery();
+}
+
+function renderNewGallery() {
+    const container = document.getElementById('newImagesContainer');
+    const grid = document.getElementById('newImagesGrid');
+    const countLabel = document.getElementById('newImagesCountLabel');
+
+    if (newFilesList.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'block';
+    countLabel.textContent = `${newFilesList.length} new photo${newFilesList.length > 1 ? 's' : ''} ready to upload`;
+    grid.innerHTML = '';
+
+    newFilesList.forEach((file, idx) => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            position: relative;
+            background: white;
+            border: 2px dashed #10B981;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        `;
+
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.style.cssText = 'width: 100%; height: 110px; object-fit: contain; background: #FAFCFB; padding: 6px;';
+        img.alt = file.name;
+
+        const badge = document.createElement('div');
+        badge.style.cssText = 'font-size: 10px; font-weight: 700; padding: 4px; text-align: center; background: #ECFDF5; color: #065F46;';
+        badge.textContent = '✚ New Upload';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.onclick = () => removeNewFile(idx);
+        removeBtn.style.cssText = `
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        `;
+        removeBtn.innerHTML = '×';
+
+        const info = document.createElement('div');
+        info.style.cssText = 'padding: 3px 6px; font-size: 9.5px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: white;';
+        info.textContent = `${file.name} (${(file.size / 1024).toFixed(0)}KB)`;
+
+        card.appendChild(removeBtn);
+        card.appendChild(img);
+        card.appendChild(badge);
+        card.appendChild(info);
+        grid.appendChild(card);
+    });
+}
+
 function addSpec() {
     const container = document.getElementById('specsContainer');
     const row = document.createElement('div');
@@ -202,20 +384,6 @@ function addSpec() {
 
 function removeSpec(btn) {
     btn.closest('.spec-row').remove();
-}
-
-function previewEditImage(input) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('editImagePreview').src = e.target.result;
-            document.getElementById('editImageFileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
-            document.getElementById('editImagePreviewContainer').style.display = 'block';
-            document.getElementById('editUploadPrompt').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-    }
 }
 </script>
 @endsection
