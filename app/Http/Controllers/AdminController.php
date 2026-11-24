@@ -99,20 +99,38 @@ class AdminController extends Controller
 
         // Upload single primary image if provided
         if ($request->hasFile('image_file')) {
-            $path = $request->file('image_file')->store('products', 'public');
-            $storedImages[] = 'storage/' . $path;
+            $file = $request->file('image_file');
+            if ($file->isValid()) {
+                $path = $file->store('products', 'public');
+                if (!empty($path)) {
+                    $storedImages[] = 'storage/' . $path;
+                } else {
+                    return back()->withInput()->withErrors(['image_file' => 'Failed to save primary product image. Please check server storage write permissions.']);
+                }
+            }
         }
 
         // Upload multiple gallery images
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                $path = $file->store('products', 'public');
-                $storedImages[] = 'storage/' . $path;
+                if ($file->isValid()) {
+                    $path = $file->store('products', 'public');
+                    if (!empty($path)) {
+                        $storedImages[] = 'storage/' . $path;
+                    } else {
+                        return back()->withInput()->withErrors(['images' => 'Failed to save uploaded gallery images. Please check server storage write permissions.']);
+                    }
+                }
             }
         }
 
+        // Clean up any empty/null/malformed values
+        $storedImages = array_values(array_filter($storedImages, function ($img) {
+            return !empty($img) && $img !== 'storage/' && $img !== 'storage';
+        }));
+
         if (empty($storedImages)) {
-            return back()->withInput()->withErrors(['images' => 'Please upload at least one product image.']);
+            return back()->withInput()->withErrors(['images' => 'Please upload at least one valid product image.']);
         }
 
         // Determine primary cover image
@@ -215,18 +233,33 @@ class AdminController extends Controller
         $newUploadedImages = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                $path = $file->store('products', 'public');
-                $newUploadedImages[] = 'storage/' . $path;
+                if ($file->isValid()) {
+                    $path = $file->store('products', 'public');
+                    if (!empty($path)) {
+                        $newUploadedImages[] = 'storage/' . $path;
+                    } else {
+                        return back()->withInput()->withErrors(['images' => 'Failed to save uploaded gallery images. Please check server storage write permissions.']);
+                    }
+                }
             }
         }
 
         // If replacement single image_file was also uploaded
         if ($request->hasFile('image_file')) {
-            $path = $request->file('image_file')->store('products', 'public');
-            $newUploadedImages[] = 'storage/' . $path;
+            $file = $request->file('image_file');
+            if ($file->isValid()) {
+                $path = $file->store('products', 'public');
+                if (!empty($path)) {
+                    $newUploadedImages[] = 'storage/' . $path;
+                } else {
+                    return back()->withInput()->withErrors(['image_file' => 'Failed to save product image. Please check server storage write permissions.']);
+                }
+            }
         }
 
-        $allImages = array_values(array_filter(array_merge($keptImages, $newUploadedImages)));
+        $allImages = array_values(array_filter(array_merge($keptImages, $newUploadedImages), function ($img) {
+            return !empty($img) && $img !== 'storage/' && $img !== 'storage';
+        }));
 
         // If completely empty, fallback to product's current image
         if (empty($allImages)) {
@@ -390,7 +423,11 @@ class AdminController extends Controller
             'cover_image_file.max' => 'The image size may not be greater than 5MB.',
         ]);
 
-        $path = $request->file('cover_image_file')->store('blogs', 'public');
+        $file = $request->file('cover_image_file');
+        $path = $file ? $file->store('blogs', 'public') : null;
+        if (empty($path)) {
+            return back()->withInput()->withErrors(['cover_image_file' => 'Failed to save blog cover image. Please check server storage write permissions.']);
+        }
         $coverPath = 'storage/' . $path;
 
         Blog::create([
@@ -442,8 +479,15 @@ class AdminController extends Controller
 
         $coverPath = $blog->cover_image;
         if ($request->hasFile('cover_image_file')) {
-            $path = $request->file('cover_image_file')->store('blogs', 'public');
-            $coverPath = 'storage/' . $path;
+            $file = $request->file('cover_image_file');
+            if ($file && $file->isValid()) {
+                $path = $file->store('blogs', 'public');
+                if (!empty($path)) {
+                    $coverPath = 'storage/' . $path;
+                } else {
+                    return back()->withInput()->withErrors(['cover_image_file' => 'Failed to save cover image. Please check server storage write permissions.']);
+                }
+            }
         }
 
         $wasUnpublished = !$blog->is_published;

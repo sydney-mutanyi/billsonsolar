@@ -36,7 +36,18 @@ class Product extends Model
     ];
 
     /**
-     * Retrieve all images for the product, guaranteeing a non-empty array if primary image exists.
+     * Accessor for primary image with safe fallback
+     */
+    public function getImageAttribute($value): string
+    {
+        if (empty($value) || $value === 'storage/' || $value === 'storage') {
+            return 'images/product_solar_panel.png';
+        }
+        return $value;
+    }
+
+    /**
+     * Retrieve all images for the product, guaranteeing a non-empty array with valid paths.
      *
      * @return array<int, string>
      */
@@ -44,16 +55,19 @@ class Product extends Model
     {
         $list = [];
         if (!empty($this->images) && is_array($this->images)) {
-            $list = array_values(array_filter($this->images));
+            $list = array_values(array_filter($this->images, function ($img) {
+                return !empty($img) && $img !== 'storage/' && $img !== 'storage';
+            }));
         }
 
-        if (empty($list) && !empty($this->image)) {
-            $list = [$this->image];
-        } elseif (!empty($this->image) && !in_array($this->image, $list, true)) {
-            array_unshift($list, $this->image);
+        $primary = $this->image;
+        if (empty($list) && !empty($primary)) {
+            $list = [$primary];
+        } elseif (!empty($primary) && !in_array($primary, $list, true)) {
+            array_unshift($list, $primary);
         }
 
-        return $list;
+        return !empty($list) ? $list : ['images/product_solar_panel.png'];
     }
 
     public function category()
