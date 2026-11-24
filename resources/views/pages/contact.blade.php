@@ -66,34 +66,63 @@
             <!-- Contact Form -->
             <div style="background: white; border-radius: 24px; padding: 36px; border: 1px solid var(--color-border); box-shadow: var(--shadow-card);">
                 <h2 style="font-size: 20px; font-weight: 800; color: var(--color-charcoal); margin-bottom: 20px;">Send Us a Message</h2>
-                
-                <form style="display: grid; gap: 14px;">
+
+                {{-- Success Message --}}
+                @if(session('success'))
+                    <div style="background: #e8fef1; border: 1px solid #25D366; color: #166534; padding: 14px 18px; border-radius: 12px; margin-bottom: 18px; font-size: 14px; font-weight: 600;">
+                        ✓ {{ session('success') }}
+                    </div>
+                @endif
+
+                {{-- Validation Errors --}}
+                @if($errors->any())
+                    <div style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 14px 18px; border-radius: 12px; margin-bottom: 18px; font-size: 14px;">
+                        <ul style="margin: 0; padding-left: 18px;">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('contact.submit') }}" method="POST" style="display: grid; gap: 14px;">
+                    @csrf
+
+                    {{-- Anti-spam: Honeypot — invisible to humans, bots fill it --}}
+                    <div style="opacity: 0; position: absolute; top: 0; left: -5000px; height: 0; width: 0; z-index: -1;" aria-hidden="true">
+                        <label for="company_website">Website</label>
+                        <input type="text" name="company_website" id="company_website" tabindex="-1" autocomplete="off">
+                    </div>
+
+                    {{-- Anti-spam: Encrypted timestamp for time-to-fill check --}}
+                    <input type="hidden" name="_form_token" value="{{ encrypt(time()) }}">
+
                     <div>
                         <label style="display: block; font-size: 12px; font-weight: 700; color: var(--color-charcoal); margin-bottom: 6px;">Your Name *</label>
-                        <input type="text" placeholder="John Doe" style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-size: 14px;">
+                        <input type="text" name="name" value="{{ old('name') }}" placeholder="John Doe" required style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-size: 14px;">
                     </div>
 
                     <div>
                         <label style="display: block; font-size: 12px; font-weight: 700; color: var(--color-charcoal); margin-bottom: 6px;">Email / Phone *</label>
-                        <input type="text" placeholder="john@example.com or +254 7..." style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-size: 14px;">
+                        <input type="text" name="contact_info" value="{{ old('contact_info') }}" placeholder="john@example.com or +254 7..." required style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-size: 14px;">
                     </div>
 
                     <div>
                         <label style="display: block; font-size: 12px; font-weight: 700; color: var(--color-charcoal); margin-bottom: 6px;">Inquiry Type</label>
-                        <select style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-size: 14px; background: white;">
-                            <option>Solar Panel / Equipment Purchase</option>
-                            <option>Residential System Installation</option>
-                            <option>Commercial Energy Audit</option>
-                            <option>After-Sales Technical Support</option>
+                        <select name="inquiry_type" style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-size: 14px; background: white;">
+                            <option value="Solar Panel / Equipment Purchase" {{ old('inquiry_type') == 'Solar Panel / Equipment Purchase' ? 'selected' : '' }}>Solar Panel / Equipment Purchase</option>
+                            <option value="Residential System Installation" {{ old('inquiry_type') == 'Residential System Installation' ? 'selected' : '' }}>Residential System Installation</option>
+                            <option value="Commercial Energy Audit" {{ old('inquiry_type') == 'Commercial Energy Audit' ? 'selected' : '' }}>Commercial Energy Audit</option>
+                            <option value="After-Sales Technical Support" {{ old('inquiry_type') == 'After-Sales Technical Support' ? 'selected' : '' }}>After-Sales Technical Support</option>
                         </select>
                     </div>
 
                     <div>
                         <label style="display: block; font-size: 12px; font-weight: 700; color: var(--color-charcoal); margin-bottom: 6px;">Message *</label>
-                        <textarea rows="4" placeholder="How can we help you power your home or business?" style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-size: 14px;"></textarea>
+                        <textarea rows="4" name="message" placeholder="How can we help you power your home or business?" required style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-size: 14px;">{{ old('message') }}</textarea>
                     </div>
 
-                    <button type="button" onclick="alert('Message sent! Our team will get back to you shortly.')" class="btn-primary" style="justify-content: center; font-size: 14px; padding: 14px;">
+                    <button type="submit" class="btn-primary" style="justify-content: center; font-size: 14px; padding: 14px;">
                         Send Inquiry →
                     </button>
                 </form>
